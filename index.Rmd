@@ -19,13 +19,13 @@ knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
 
 # Load packages 
 if(!require(pacman)) install.packages("pacman")
-pacman::p_load(plotly, tidyverse, reactable, here)
+pacman::p_load(plotly, tidyverse, reactable, here,janitor)
 ```
 
 ```{r}
 ## Import data
 cantril <- 
-  read_csv(here("data/happiness-cantril-ladder.csv")) %>% 
+  read_csv(here("data/share-of-people-who-say-they-are-happy.csv")) %>% 
   rename(Country = Entity)
 ```
 
@@ -37,11 +37,11 @@ cantril <-
 
 ```{r}
 cantril %>% 
-  filter(Year %in% c(2011, 2022)) %>% 
-  pivot_wider(names_from = Year, values_from = `Cantril ladder score`, id_cols = Country) %>% 
-  select(Country, `2011`, `2022`) %>% 
-  mutate(`Absolute change` = round(`2022` - `2011`, 3)) %>% 
-  mutate(`Relative change` = (`2022` - `2011`) / `2011`) %>% 
+  filter(Year %in% c(2014, 2022)) %>% 
+  pivot_wider(names_from = Year, values_from = `Happiness: Happy (aggregate)`, id_cols = Country) %>% 
+  select(Country, `2014`, `2022`) %>% 
+  mutate(`Absolute change` = round(`2022` - `2014`, 3)) %>% 
+  mutate(`Relative change` = (`2022` - `2014`) / `2014`) %>% 
   reactable(
     columns = list(`Relative change` = colDef(format = colFormat(percent = TRUE, digits = 1))) 
   )
@@ -51,7 +51,7 @@ cantril %>%
 
 ```{r}
 cantril %>% 
-  mutate(`Cantril ladder score` = round(`Cantril ladder score`, 2)) %>%
+  mutate(`Cantril ladder score` = round(`Happiness: Happy (aggregate)`, 2)) %>%
   plot_geo(width = 940) %>% 
   add_trace(
     z = ~`Cantril ladder score`,
@@ -71,10 +71,9 @@ cantril %>%
 
 cantril_chart <- 
   cantril %>% 
-  filter(Country %in% c("Norway", "Australia", "Germany", "Bolivia", "Colombia", "Bhutan")) %>%
-  ggplot(aes(x = Year, y = `Cantril ladder score`, color = Country)) +
+  filter(Country %in% c("Norway", "Australia", "Germany", "Bolivia", "Colombia", "Bulgaria ")) %>%
+  ggplot(aes(x = Year, y = `Happiness: Happy (aggregate)`, color = Country)) +
   geom_line() +
-  scale_y_continuous(limits = c(0, 10)) +
   labs(x = NULL,
        y = NULL, 
        color = NULL) +
@@ -99,12 +98,11 @@ shared_cantril <- highlight_key(cantril)
 cantril_plotly <- plot_ly(
   shared_cantril, 
   x = ~Year, 
-  y = ~`Cantril ladder score`, 
+  y = ~`Happiness: Happy (aggregate)`, 
   color = ~Country, 
   type = "scatter", 
   mode = "lines+markers"
-) %>%
-  layout(yaxis = list(range = c(0, 10)))
+) 
 
 
 country_filter <- filter_select(
